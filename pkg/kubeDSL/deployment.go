@@ -23,6 +23,7 @@ type DeploymentBuilder interface {
 	SetName(string) DeploymentBuilder
 	SetPods(Pod) DeploymentBuilder
 	SetReplicas(int32) DeploymentBuilder
+	SetLabels(map[string]string) DeploymentBuilder
 	Build() Deployment
 }
 
@@ -31,6 +32,18 @@ type Deployment struct {
 	name     string
 	pod      Pod
 	replicas int32
+	labels   map[string]string
+}
+
+// Labels return deployment labels
+func (d *Deployment) Labels() map[string]string {
+	return d.labels
+}
+
+// SetLabels sets the labels for the service
+func (d *Deployment) SetLabels(labels map[string]string) DeploymentBuilder {
+	d.labels = labels
+	return d
 }
 
 // Replicas returns the number of deployment replicas
@@ -72,5 +85,6 @@ func (d *Deployment) Build() Deployment {
 		name:     d.name,
 		pod:      d.pod,
 		replicas: d.replicas,
+		labels:   d.labels,
 	}
 }

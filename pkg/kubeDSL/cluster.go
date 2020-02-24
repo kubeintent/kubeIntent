@@ -69,8 +69,9 @@ func (c *Cluster) Build() Cluster {
 		extensionsClient: apiextension.NewForConfigOrDie(c.kube.Config()),
 	}
 	return Cluster{
-		client: client,
-		Pods:   c.Pods,
+		client:      client,
+		Pods:        c.Pods,
+		Deployments: c.Deployments,
 	}
 }
 
@@ -101,10 +102,18 @@ func (c *Cluster) createDeployments() error {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deployment.name,
 				Namespace: c.namespace,
+				Labels:    deployment.labels,
 			},
+
 			Spec: appsv1.DeploymentSpec{
 				Replicas: &deployment.replicas,
+				Selector: &metav1.LabelSelector{
+					MatchLabels: deployment.labels,
+				},
 				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: deployment.labels,
+					},
 					Spec: corev1.PodSpec{
 						Containers: containers,
 					},
