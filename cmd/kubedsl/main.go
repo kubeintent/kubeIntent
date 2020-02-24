@@ -12,12 +12,6 @@ func main() {
 	container.SetPullPolicy(kubeDSL.Always.String())
 	containerInst := container.Build()
 
-	/*container2 := kubeDSL.NewContainer()
-	container2.SetName("hello-world-5-2")
-	container2.SetImage("callicoder/go-hello-world:1.0.0")
-	container2.SetPullPolicy(kubeDSL.Always.String())
-	containerInst2 := container2.Build()*/
-
 	pod := kubeDSL.NewPod()
 	pod.SetName("hello-world-6")
 	pod.SetContainers(containerInst)
