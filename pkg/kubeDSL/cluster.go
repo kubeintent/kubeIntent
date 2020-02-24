@@ -23,9 +23,13 @@ import (
 )
 
 // NewCluster creates a new cluster builder
-func NewCluster(kube kube.API) ClusterBuilder {
+func NewCluster(namespace string) ClusterBuilder {
+	kubeApi, err := kube.GetAPI(namespace)
+	if err != nil {
+		panic(err)
+	}
 	return &Cluster{
-		kube: kube,
+		kube: kubeApi,
 	}
 }
 
@@ -59,27 +63,44 @@ func (c *Cluster) Build() Cluster {
 	}
 }
 
-func (c *Cluster) CreatePods() error {
+func (c *Cluster) createPods() error {
 	for _, pod := range c.Pods {
+		var containers []corev1.Container
+		for _, container := range pod.containers {
+			containers = append(containers, corev1.Container{
+				Name:            container.name,
+				Image:           container.image,
+				Args:            container.args,
+				Command:         container.command,
+				ImagePullPolicy: corev1.PullPolicy(container.pullPolicy),
+			})
+		}
 		kubePod := corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      pod.name,
 				Namespace: c.namespace,
 			},
 			Spec: corev1.PodSpec{
-				Containers: []corev1.Container{
-					{
-						Name:            pod.name,
-						Image:           "callicoder/go-hello-world:1.0.0",
-						ImagePullPolicy: "Always",
-					},
-				},
+				Containers: containers,
 			},
 		}
 		_, err := c.client.kubeClient.CoreV1().Pods(c.namespace).Create(&kubePod)
 		if err != nil {
 			return err
 		}
+
 	}
+	return nil
+
+}
+
+func (c *Cluster) CreateCluster() error {
+	// create a set of pods
+	err := c.createPods()
+	if err != nil {
+		return err
+	}
+
+	// create a set of deployments
 	return nil
 }

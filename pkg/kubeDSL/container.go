@@ -25,15 +25,28 @@ type ContainerBuilder interface {
 	SetImage(string) ContainerBuilder
 	SetArgs(...string) ContainerBuilder
 	SetCommand(...string) ContainerBuilder
+	SetPullPolicy(string) ContainerBuilder
 	Build() Container
 }
 
 // Container container type defines an abstraction for containers
 type Container struct {
-	name    string
-	image   string
-	command []string
-	args    []string
+	name       string
+	image      string
+	command    []string
+	args       []string
+	pullPolicy string
+}
+
+// PullPolicy returns the pull policy
+func (c *Container) PullPolicy() string {
+	return c.pullPolicy
+}
+
+// SetPullPolicy sets pull policy for a container
+func (c *Container) SetPullPolicy(pullPolicy string) ContainerBuilder {
+	c.pullPolicy = pullPolicy
+	return c
 }
 
 // Command returns a container command

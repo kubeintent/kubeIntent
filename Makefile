@@ -10,7 +10,7 @@ build-kube-dsl: deps
 	go build -o build/_output/kubedsl ./cmd/kubedsl
 
 test: # @HELP run the unit tests and source code validation
-test: linters
+test: build linters
 	go test github.com/adibrastegarnia/kubeDSL/pkg/...
 	go test github.com/adibrastegarnia/kubeDSL/cmd/...
 
