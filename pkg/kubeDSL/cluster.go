@@ -16,6 +16,7 @@ package kubeDSL
 
 import (
 	"github.com/adibrastegarnia/kubeDSL/pkg/kube"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,21 +36,31 @@ func NewCluster(namespace string) ClusterBuilder {
 
 type ClusterBuilder interface {
 	SetPods(...Pod) ClusterBuilder
+	SetDeployments(...Deployment) ClusterBuilder
 	Build() Cluster
 }
 
 // Cluster k8s cluster type
 type Cluster struct {
 	*client
-	kube kube.API
-	Pods []Pod
+	kube        kube.API
+	Pods        []Pod
+	Deployments []Deployment
 }
 
+// SetDeployments sets cluster deployments
+func (c *Cluster) SetDeployments(deployments ...Deployment) ClusterBuilder {
+	c.Deployments = deployments
+	return c
+}
+
+// SetPods set cluster pods
 func (c *Cluster) SetPods(pods ...Pod) ClusterBuilder {
 	c.Pods = pods
 	return c
 }
 
+// Build builds a k8s cluster
 func (c *Cluster) Build() Cluster {
 	client := &client{
 		namespace:        c.kube.Namespace(),
@@ -61,6 +72,54 @@ func (c *Cluster) Build() Cluster {
 		client: client,
 		Pods:   c.Pods,
 	}
+}
+
+func (c *Cluster) createDeployments() error {
+	for _, deployment := range c.Deployments {
+		var containers []corev1.Container
+		for _, container := range deployment.pod.containers {
+			var ports []corev1.ContainerPort
+			for _, port := range container.ports {
+				ports = append(ports, corev1.ContainerPort{
+					Name:          port.name,
+					ContainerPort: port.containerPort,
+					HostIP:        port.hostIP,
+					HostPort:      port.hostPort,
+					Protocol:      corev1.Protocol(port.protocol),
+				})
+			}
+			containers = append(containers, corev1.Container{
+				Name:            container.name,
+				Image:           container.image,
+				Args:            container.args,
+				Command:         container.command,
+				ImagePullPolicy: corev1.PullPolicy(container.pullPolicy),
+				Ports:           ports,
+			})
+		}
+		kubeDeployment := appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      deployment.name,
+				Namespace: c.namespace,
+			},
+			Spec: appsv1.DeploymentSpec{
+				Replicas: &deployment.replicas,
+				Template: corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Containers: containers,
+					},
+				},
+			},
+		}
+
+		_, err := c.client.kubeClient.AppsV1().Deployments(c.namespace).Create(&kubeDeployment)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 // createPods creates cluster pods
@@ -78,7 +137,6 @@ func (c *Cluster) createPods() error {
 					Protocol:      corev1.Protocol(port.protocol),
 				})
 			}
-
 			containers = append(containers, corev1.Container{
 				Name:            container.name,
 				Image:           container.image,
@@ -101,16 +159,24 @@ func (c *Cluster) createPods() error {
 		if err != nil {
 			return err
 		}
-
 	}
 	return nil
 }
 
 func (c *Cluster) CreateCluster() error {
 	// create a set of pods
-	err := c.createPods()
-	if err != nil {
-		return err
+	if len(c.Pods) != 0 {
+		err := c.createPods()
+		if err != nil {
+			return err
+		}
+	}
+	// create a set of deployments
+	if len(c.Deployments) != 0 {
+		err := c.createDeployments()
+		if err != nil {
+			return err
+		}
 	}
 
 	// create a set of deployments

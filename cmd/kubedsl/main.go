@@ -17,8 +17,12 @@ func main() {
 	pod.SetContainers(containerInst)
 	podInst := pod.Build()
 
+	deployment := kubeDSL.NewDeployment()
+	deployment.SetName("hello-world-deployment")
+	deploymentInst := deployment.SetReplicas(2).SetPods(podInst).Build()
+
 	cluster := kubeDSL.NewCluster("default")
-	clusterInst := cluster.SetPods(podInst).Build()
+	clusterInst := cluster.SetPods(podInst).SetDeployments(deploymentInst).Build()
 	err := clusterInst.CreateCluster()
 	if err != nil {
 		panic(err)

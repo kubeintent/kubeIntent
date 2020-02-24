@@ -14,16 +14,34 @@
 
 package kubeDSL
 
+// NewDeployment creates a new deployment
+func NewDeployment() DeploymentBuilder {
+	return &Deployment{}
+}
+
 type DeploymentBuilder interface {
 	SetName(string) DeploymentBuilder
-	SetPods(...Pod) DeploymentBuilder
+	SetPods(Pod) DeploymentBuilder
+	SetReplicas(int32) DeploymentBuilder
 	Build() Deployment
 }
 
 // Deployment deployment abstraction
 type Deployment struct {
-	name string
-	pods []Pod
+	name     string
+	pod      Pod
+	replicas int32
+}
+
+// Replicas returns the number of deployment replicas
+func (d *Deployment) Replicas() int32 {
+	return d.replicas
+}
+
+// SetReplicas sets deployment replicas
+func (d *Deployment) SetReplicas(replicas int32) DeploymentBuilder {
+	d.replicas = replicas
+	return d
 }
 
 // SetName sets a deployment name
@@ -37,21 +55,22 @@ func (d *Deployment) Name() string {
 	return d.name
 }
 
-// SetPods sets deployment pods
-func (d *Deployment) SetPods(pods ...Pod) DeploymentBuilder {
-	d.pods = pods
+// SetPods sets deployment pod
+func (d *Deployment) SetPods(pod Pod) DeploymentBuilder {
+	d.pod = pod
 	return d
 }
 
-// Pods returns deployment pods
-func (d *Deployment) Pods() []Pod {
-	return d.pods
+// Pods returns deployment pod
+func (d *Deployment) Pod() Pod {
+	return d.pod
 }
 
 // Build builds a deployment
 func (d *Deployment) Build() Deployment {
 	return Deployment{
-		name: d.name,
-		pods: d.pods,
+		name:     d.name,
+		pod:      d.pod,
+		replicas: d.replicas,
 	}
 }
