@@ -7,13 +7,19 @@ import (
 func main() {
 
 	container := kubeDSL.NewContainer()
-	container.SetName("hello-world-3")
+	container.SetName("hello-world-6")
 	container.SetImage("callicoder/go-hello-world:1.0.0")
-	container.SetPullPolicy("Always")
+	container.SetPullPolicy(kubeDSL.Always.String())
 	containerInst := container.Build()
 
+	/*container2 := kubeDSL.NewContainer()
+	container2.SetName("hello-world-5-2")
+	container2.SetImage("callicoder/go-hello-world:1.0.0")
+	container2.SetPullPolicy(kubeDSL.Always.String())
+	containerInst2 := container2.Build()*/
+
 	pod := kubeDSL.NewPod()
-	pod.SetName("hello-world-3")
+	pod.SetName("hello-world-6")
 	pod.SetContainers(containerInst)
 	podInst := pod.Build()
 

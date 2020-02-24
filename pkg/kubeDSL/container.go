@@ -26,7 +26,30 @@ type ContainerBuilder interface {
 	SetArgs(...string) ContainerBuilder
 	SetCommand(...string) ContainerBuilder
 	SetPullPolicy(string) ContainerBuilder
+	SetPorts(...Port) ContainerBuilder
 	Build() Container
+}
+
+// PullPolicy pull policy type
+type PullPolicy int
+
+const (
+	Always PullPolicy = iota
+	IfNotPresent
+	Never
+)
+
+func (p PullPolicy) String() string {
+	return [...]string{"Always", "IfNotPresent", "Never"}[p]
+}
+
+// Port port abstraction
+type Port struct {
+	name          string
+	containerPort int32
+	hostPort      int32
+	hostIP        string
+	protocol      string
 }
 
 // Container container type defines an abstraction for containers
@@ -36,6 +59,18 @@ type Container struct {
 	command    []string
 	args       []string
 	pullPolicy string
+	ports      []Port
+}
+
+// Ports return a set of container ports
+func (c *Container) Ports() []Port {
+	return c.ports
+}
+
+// SetPorts sets a container ports
+func (c *Container) SetPorts(ports ...Port) ContainerBuilder {
+	c.ports = ports
+	return c
 }
 
 // PullPolicy returns the pull policy

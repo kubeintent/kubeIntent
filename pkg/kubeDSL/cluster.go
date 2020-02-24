@@ -63,16 +63,29 @@ func (c *Cluster) Build() Cluster {
 	}
 }
 
+// createPods creates cluster pods
 func (c *Cluster) createPods() error {
 	for _, pod := range c.Pods {
 		var containers []corev1.Container
 		for _, container := range pod.containers {
+			var ports []corev1.ContainerPort
+			for _, port := range container.ports {
+				ports = append(ports, corev1.ContainerPort{
+					Name:          port.name,
+					ContainerPort: port.containerPort,
+					HostIP:        port.hostIP,
+					HostPort:      port.hostPort,
+					Protocol:      corev1.Protocol(port.protocol),
+				})
+			}
+
 			containers = append(containers, corev1.Container{
 				Name:            container.name,
 				Image:           container.image,
 				Args:            container.args,
 				Command:         container.command,
 				ImagePullPolicy: corev1.PullPolicy(container.pullPolicy),
+				Ports:           ports,
 			})
 		}
 		kubePod := corev1.Pod{
@@ -91,7 +104,6 @@ func (c *Cluster) createPods() error {
 
 	}
 	return nil
-
 }
 
 func (c *Cluster) CreateCluster() error {
