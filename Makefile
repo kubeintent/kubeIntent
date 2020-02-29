@@ -3,8 +3,14 @@ export GO111MODULE=on
 
 .PHONY: build
 
+build: # @HELP build the Go binaries and run all validations (default)
+build: build-kube-dsl
+
+build-kube-dsl: deps
+	go build -o build/_output/kubedsl ./cmd/kubedsl
+
 test: # @HELP run the unit tests and source code validation
-test: deps linters
+test: build linters
 	go test github.com/adibrastegarnia/kubeDSL/pkg/...
 	go test github.com/adibrastegarnia/kubeDSL/cmd/...
 
@@ -16,7 +22,7 @@ deps: # @HELP ensure that the required dependencies are in place
 	bash -c "diff -u <(echo -n) <(git diff go.mod)"
 	bash -c "diff -u <(echo -n) <(git diff go.sum)"
 
-all: test
+all: build test
 
 clean: # @HELP remove all the build artifacts
 	rm -rf ./build/_output ./vendor
