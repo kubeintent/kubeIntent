@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubeDSL
+package intent
 
 import (
 	"github.com/adibrastegarnia/kubeDSL/pkg/kube"
