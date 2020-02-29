@@ -4,10 +4,10 @@ export GO111MODULE=on
 .PHONY: build
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-kube-dsl
+build: build-kube-intent
 
-build-kube-dsl: deps
-	go build -o build/_output/kubedsl ./cmd/kubedsl
+build-kube-intent: deps
+	go build -o build/_output/kubedsl ./cmd/kubeintent
 
 test: # @HELP run the unit tests and source code validation
 test: build linters
