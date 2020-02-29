@@ -24,7 +24,7 @@ func main() {
 	deployment.SetName("hello-world-deployment").SetLabels(lables)
 	deploymentInst := deployment.SetReplicas(2).SetPods(podInst).Build()
 
-	cluster := kubeDSL.NewCluster("kube-dsl")
+	cluster := kubeDSL.NewCluster("kube-dsl-2")
 	clusterInst := cluster.SetDeployments(deploymentInst).Build()
 	err := clusterInst.CreateCluster()
 	if err != nil {

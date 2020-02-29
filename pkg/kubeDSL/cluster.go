@@ -19,6 +19,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -31,6 +32,7 @@ func NewCluster(namespace string) ClusterBuilder {
 	}
 	return &Cluster{
 		kube: kubeApi,
+		//namespace: namespace,
 	}
 }
 
@@ -43,6 +45,7 @@ type ClusterBuilder interface {
 // Cluster k8s cluster type
 type Cluster struct {
 	*client
+	//namespace   string
 	kube        kube.API
 	Pods        []Pod
 	Deployments []Deployment
@@ -172,7 +175,34 @@ func (c *Cluster) createPods() error {
 	return nil
 }
 
+func (c *Cluster) createNamespace() error {
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: c.namespace,
+			Labels: map[string]string{
+				"test": c.namespace,
+			},
+		},
+	}
+
+	_, err := c.kubeClient.CoreV1().Namespaces().Create(ns)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Cluster) CreateCluster() error {
+
+	// create the namespace if it does not exist
+	if c.namespace != "" {
+		err := c.createNamespace()
+		if err != nil {
+			return err
+		}
+	}
+
 	// create a set of pods
 	if len(c.Pods) != 0 {
 		err := c.createPods()
