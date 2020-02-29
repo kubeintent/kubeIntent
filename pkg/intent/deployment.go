@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubeDSL
+package intent
 
 // NewDeployment creates a new deployment
 func NewDeployment() DeploymentBuilder {

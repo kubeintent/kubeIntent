@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/adibrastegarnia/kubeDSL/pkg/kubeDSL"
+	"github.com/adibrastegarnia/kubeDSL/pkg/intent"
 )
 
 func main() {
@@ -9,22 +9,22 @@ func main() {
 	lables := make(map[string]string)
 	lables["app"] = "hello-world-deployment"
 
-	container := kubeDSL.NewContainer()
+	container := intent.NewContainer()
 	container.SetName("hello-world-8")
 	container.SetImage("callicoder/go-hello-world:1.0.0")
-	container.SetPullPolicy(kubeDSL.Always.String())
+	container.SetPullPolicy(intent.Always.String())
 	containerInst := container.Build()
 
-	pod := kubeDSL.NewPod()
+	pod := intent.NewPod()
 	pod.SetName("hello-world-8")
 	pod.SetContainers(containerInst)
 	podInst := pod.Build()
 
-	deployment := kubeDSL.NewDeployment()
+	deployment := intent.NewDeployment()
 	deployment.SetName("hello-world-deployment").SetLabels(lables)
 	deploymentInst := deployment.SetReplicas(2).SetPods(podInst).Build()
 
-	cluster := kubeDSL.NewCluster("kube-dsl")
+	cluster := intent.NewCluster("kube-dsl-2")
 	clusterInst := cluster.SetDeployments(deploymentInst).Build()
 	err := clusterInst.CreateCluster()
 	if err != nil {

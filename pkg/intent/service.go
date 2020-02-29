@@ -12,18 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubeDSL
+package intent
 
-import (
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-)
-
-// client is the base for all Kubernetes cluster objects
-type client struct {
-	namespace        string
-	config           *rest.Config
-	kubeClient       *kubernetes.Clientset
-	extensionsClient *apiextension.Clientset
+type ServiceBuilder interface {
 }
